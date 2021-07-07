@@ -33,6 +33,7 @@ export interface MessageRequest {
   func: string;
   timestamp?: number;
   args?: any[]; // tslint:disable-line:no-any The args here are a passthrough to postMessage where we do allow any[]
+  perfObject?: PerformanceTiming;
 }
 
 export interface MessageResponse {

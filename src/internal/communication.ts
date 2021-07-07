@@ -75,7 +75,7 @@ export function sendMessageToParent(actionName: string, callback?: Function): vo
 /**
  * Send a message to parent. Uses nativeInterface on mobile to communicate with parent context
  */
-export function sendMessageToParent(actionName: string, args: any[], callback?: Function): void;
+export function sendMessageToParent(actionName: string, args: any[], callback?: Function, perfObj?: Performance): void;
 export function sendMessageToParent(
   actionName: string,
   argsOrCallback?: any[] | Function,
@@ -83,7 +83,7 @@ export function sendMessageToParent(
   perfObj?: Performance,
 ): void {
   let args: any[] | undefined;
-  let timing: PerformanceEntry | undefined;
+  let timing: PerformanceTiming | undefined;
   if (argsOrCallback instanceof Function) {
     callback = argsOrCallback;
   } else if (argsOrCallback instanceof Array) {
@@ -91,11 +91,11 @@ export function sendMessageToParent(
   }
 
   if (perfObj) {
-    timing = perfObj.getEntriesByType('navigation')[0];
+    timing = perfObj.timing;
   }
 
   const targetWindow = Communication.parentWindow;
-  const request = createMessageRequest(actionName, args);
+  const request = createMessageRequest(actionName, args, timing);
   if (GlobalVars.isFramelessWindow) {
     if (Communication.currentWindow && Communication.currentWindow.nativeInterface) {
       (Communication.currentWindow as ExtendedWindow).nativeInterface.framelessPostMessage(JSON.stringify(request));
@@ -318,12 +318,13 @@ export function sendMessageEventToChild(
 }
 
 // tslint:disable-next-line:no-any
-function createMessageRequest(func: string, args: any[]): MessageRequest {
+function createMessageRequest(func: string, args: any[], perfObj: PerformanceTiming): MessageRequest {
   return {
     id: CommunicationPrivate.nextMessageId++,
     func: func,
     timestamp: Date.now(),
     args: args || [],
+    perfObject: perfObj,
   };
 }
 
