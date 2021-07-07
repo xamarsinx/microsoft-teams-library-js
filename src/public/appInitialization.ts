@@ -47,7 +47,7 @@ export namespace appInitialization {
    */
   export function notifySuccess(): void {
     ensureInitialized();
-    sendMessageToParent(Messages.Success, [version]);
+    sendMessageToParent(Messages.Success, [version], null, window.performance);
   }
 
   /**

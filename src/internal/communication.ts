@@ -76,12 +76,22 @@ export function sendMessageToParent(actionName: string, callback?: Function): vo
  * Send a message to parent. Uses nativeInterface on mobile to communicate with parent context
  */
 export function sendMessageToParent(actionName: string, args: any[], callback?: Function): void;
-export function sendMessageToParent(actionName: string, argsOrCallback?: any[] | Function, callback?: Function): void {
+export function sendMessageToParent(
+  actionName: string,
+  argsOrCallback?: any[] | Function,
+  callback?: Function,
+  perfObj?: Performance,
+): void {
   let args: any[] | undefined;
+  let timing: PerformanceEntry | undefined;
   if (argsOrCallback instanceof Function) {
     callback = argsOrCallback;
   } else if (argsOrCallback instanceof Array) {
     args = argsOrCallback;
+  }
+
+  if (perfObj) {
+    timing = perfObj.getEntriesByType('navigation')[0];
   }
 
   const targetWindow = Communication.parentWindow;
