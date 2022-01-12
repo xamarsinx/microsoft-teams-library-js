@@ -27,10 +27,15 @@ describe('files', () => {
   });
 
   describe('getCloudStorageFolders', () => {
-    it('should not allow calls before initialization', () => {
-      expect(files.getCloudStorageFolders('channelId')).rejects.toThrowError(
-        'The library has not yet been initialized',
-      );
+    it('should not allow calls before initialization', async () => {
+      try {
+        await files.getCloudStorageFolders('channelId');
+      } catch (e) {
+        expect(e).toMatchObject(new Error('The library has not yet been initialized'));
+      }
+      // expect(files.getCloudStorageFolders('channelId')).rejects.toThrowError(
+      //   'The library has not yet been initialized THIS SHOULD FAIL',
+      // );
     });
 
     it('should not allow calls without frame context initialization', async () => {
