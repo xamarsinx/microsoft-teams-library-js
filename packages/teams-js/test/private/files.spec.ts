@@ -28,26 +28,41 @@ describe('files', () => {
 
   describe('getCloudStorageFolders', () => {
     it('should not allow calls before initialization', async () => {
-      try {
-        await files.getCloudStorageFolders('channelId');
-      } catch (e) {
-        expect(e).toMatchObject(new Error('The library has not yet been initialized'));
-      }
+      // try {
+      //   await files.getCloudStorageFolders('channelId');
+      // } catch (e) {
+      //   expect(e).toMatchObject(new Error('The library has not yet been initialized'));
+      // }
       // expect(files.getCloudStorageFolders('channelId')).rejects.toThrowError(
       //   'The library has not yet been initialized THIS SHOULD FAIL',
       // );
+      await files
+        .getCloudStorageFolders('channelId')
+        .catch(e => expect(e).toMatchObject(new Error('The library has not yet been initialized')));
     });
 
     it('should not allow calls without frame context initialization', async () => {
       await utils.initializeWithContext('settings');
-      expect(files.getCloudStorageFolders('channelId')).rejects.toThrowError(
-        'This call is only allowed in following contexts: ["content"]. Current context: "settings".',
-      );
+      await files
+        .getCloudStorageFolders('channelId')
+        .catch(e =>
+          expect(e).toMatchObject(
+            new Error('This call is only allowed in following contexts: ["content"]. Current context: "settings".'),
+          ),
+        );
+      // expect(files.getCloudStorageFolders('channelId')).rejects.toThrowError(
+      //   'This call is only allowed in following contexts: ["content"]. Current context: "settings".',
+      // );
     });
 
     it('should not allow calls with null channelId', async () => {
       await utils.initializeWithContext('content');
-      expect(files.getCloudStorageFolders(null)).rejects.toThrowError();
+      await files
+        .getCloudStorageFolders(null)
+        .catch(e =>
+          expect(e).toMatchObject(new Error('[files.getCloudStorageFolders] channelId name cannot be null or empty')),
+        );
+      // expect(files.getCloudStorageFolders(null)).rejects.toThrowError('channelId');
     });
 
     it('should not allow calls with undefined channelId', async () => {
