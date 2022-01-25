@@ -1,6 +1,7 @@
+import { FrameContexts } from '../../src/public';
+import { app } from '../../src/public/app';
 import { pages } from '../../src/public/pages';
 import { Utils } from '../utils';
-import { app } from '../../src/public/app';
 
 describe('config', () => {
   // Use to send a mock message from the app.
@@ -21,26 +22,41 @@ describe('config', () => {
     }
   });
 
-  it('should not allow calls from the wrong context', async () => {
-    await utils.initializeWithContext('content');
+  const allowedContexts = [FrameContexts.settings, FrameContexts.remove];
 
-    expect(() => pages.config.setValidityState(true)).toThrowError(
-      'This call is only allowed in following contexts: ["settings","remove"]. Current context: "content".',
-    );
+  Object.keys(FrameContexts).forEach(k => {
+    const context = FrameContexts[k];
+    if (allowedContexts.some(allowedContext => allowedContext === context)) {
+      it(`should allow calls from the ${context} context`, async () => {
+        expect.assertions(1);
+        await utils.initializeWithContext(context);
+
+        return expect(() => pages.config.setValidityState(true)).not.toThrowError();
+      });
+    } else {
+      it(`should not allow calls from the ${context} context`, async () => {
+        expect.assertions(1);
+        await utils.initializeWithContext(context);
+
+        return expect(() => pages.config.setValidityState(true)).toThrowError(
+          `This call is only allowed in following contexts: ["settings","remove"]. Current context: "${context}".`,
+        );
+      });
+    }
   });
 
   it('should successfully notify success on save when there is no registered handler', async () => {
-    await utils.initializeWithContext('settings');
+    await utils.initializeWithContext(FrameContexts.settings);
 
     utils.sendMessage('settings.save');
 
-    let message = utils.findMessageByFunc('settings.save.success');
+    const message = utils.findMessageByFunc('settings.save.success');
     expect(message).not.toBeNull();
     expect(message.args.length).toBe(0);
   });
 
   it('should successfully register a remove handler', async () => {
-    await utils.initializeWithContext('remove');
+    await utils.initializeWithContext(FrameContexts.remove);
 
     let handlerCalled = false;
     pages.config.registerOnRemoveHandler(() => {
@@ -53,36 +69,37 @@ describe('config', () => {
   });
 
   it('should successfully set validity state to true', async () => {
-    await utils.initializeWithContext('settings');
+    await utils.initializeWithContext(FrameContexts.settings);
 
     pages.config.setValidityState(true);
 
-    let message = utils.findMessageByFunc('settings.setValidityState');
+    const message = utils.findMessageByFunc('settings.setValidityState');
     expect(message).not.toBeNull();
     expect(message.args.length).toBe(1);
     expect(message.args[0]).toBe(true);
   });
 
   it('should successfully set validity state to false', async () => {
-    await utils.initializeWithContext('settings');
+    await utils.initializeWithContext(FrameContexts.settings);
 
     pages.config.setValidityState(false);
 
-    let message = utils.findMessageByFunc('settings.setValidityState');
+    const message = utils.findMessageByFunc('settings.setValidityState');
     expect(message).not.toBeNull();
     expect(message.args.length).toBe(1);
     expect(message.args[0]).toBe(false);
   });
 
   it('should successfully get settings', async () => {
-    await utils.initializeWithContext('settings');
+    expect.assertions(2);
+    await utils.initializeWithContext(FrameContexts.settings);
 
     const promise = pages.getConfig();
 
-    let message = utils.findMessageByFunc('settings.getSettings');
+    const message = utils.findMessageByFunc('settings.getSettings');
     expect(message).not.toBeNull();
 
-    let expectedSettings: pages.InstanceConfig = {
+    const expectedSettings: pages.InstanceConfig = {
       suggestedDisplayName: 'someSuggestedDisplayName',
       contentUrl: 'someContentUrl',
       websiteUrl: 'someWebsiteUrl',
@@ -95,9 +112,9 @@ describe('config', () => {
   });
 
   it('should successfully set settings', async () => {
-    await utils.initializeWithContext('settings');
+    await utils.initializeWithContext(FrameContexts.settings);
 
-    let settingsObj: pages.InstanceConfig = {
+    const settingsObj: pages.InstanceConfig = {
       suggestedDisplayName: 'someSuggestedDisplayName',
       contentUrl: 'someContentUrl',
       websiteUrl: 'someWebsiteUrl',
@@ -105,14 +122,14 @@ describe('config', () => {
     };
     pages.config.setConfig(settingsObj);
 
-    let message = utils.findMessageByFunc('settings.setSettings');
+    const message = utils.findMessageByFunc('settings.setSettings');
     expect(message).not.toBeNull();
     expect(message.args.length).toBe(1);
     expect(message.args[0]).toBe(settingsObj);
   });
 
   it('should successfully register a save handler', async () => {
-    await utils.initializeWithContext('settings');
+    await utils.initializeWithContext(FrameContexts.settings);
 
     let handlerCalled = false;
     pages.config.registerOnSaveHandler(() => {
@@ -125,7 +142,8 @@ describe('config', () => {
   });
 
   it('should successfully register a remove handler', async () => {
-    await utils.initializeWithContext('settings');
+    expect.assertions(2);
+    await utils.initializeWithContext(FrameContexts.settings);
 
     let handlerCalled = false;
     pages.config.registerOnSaveHandler(saveEvent => {
@@ -143,7 +161,7 @@ describe('config', () => {
   });
 
   it('should successfully override a save handler with another', async () => {
-    await utils.initializeWithContext('settings');
+    await utils.initializeWithContext(FrameContexts.settings);
 
     let handler1Called = false;
     let handler2Called = false;
@@ -161,7 +179,7 @@ describe('config', () => {
   });
 
   it('should successfully notify success from the registered save handler', async () => {
-    await utils.initializeWithContext('settings');
+    await utils.initializeWithContext(FrameContexts.settings);
 
     let handlerCalled = false;
     pages.config.registerOnSaveHandler(saveEvent => {
@@ -172,13 +190,13 @@ describe('config', () => {
     utils.sendMessage('settings.save');
 
     expect(handlerCalled).toBe(true);
-    let message = utils.findMessageByFunc('settings.save.success');
+    const message = utils.findMessageByFunc('settings.save.success');
     expect(message).not.toBeNull();
     expect(message.args.length).toBe(0);
   });
 
   it('should successfully notify failure from the registered save handler', async () => {
-    await utils.initializeWithContext('settings');
+    await utils.initializeWithContext(FrameContexts.settings);
 
     let handlerCalled = false;
     pages.config.registerOnSaveHandler(saveEvent => {
@@ -189,24 +207,24 @@ describe('config', () => {
     utils.sendMessage('settings.save');
 
     expect(handlerCalled).toBe(true);
-    let message = utils.findMessageByFunc('settings.save.failure');
+    const message = utils.findMessageByFunc('settings.save.failure');
     expect(message).not.toBeNull();
     expect(message.args.length).toBe(1);
     expect(message.args[0]).toBe('someReason');
   });
 
   it('should successfully notify success on remove when there is no registered handler', async () => {
-    await utils.initializeWithContext('remove');
+    await utils.initializeWithContext(FrameContexts.remove);
 
     utils.sendMessage('settings.remove');
 
-    let message = utils.findMessageByFunc('settings.remove.success');
+    const message = utils.findMessageByFunc('settings.remove.success');
     expect(message).not.toBeNull();
     expect(message.args.length).toBe(0);
   });
 
   it('should successfully notify success from the registered remove handler', async () => {
-    await utils.initializeWithContext('remove');
+    await utils.initializeWithContext(FrameContexts.remove);
 
     let handlerCalled = false;
     pages.config.registerOnRemoveHandler(removeEvent => {
@@ -217,13 +235,13 @@ describe('config', () => {
     utils.sendMessage('settings.remove');
 
     expect(handlerCalled).toBe(true);
-    let message = utils.findMessageByFunc('settings.remove.success');
+    const message = utils.findMessageByFunc('settings.remove.success');
     expect(message).not.toBeNull();
     expect(message.args.length).toBe(0);
   });
 
   it('should successfully notify failure from the registered remove handler', async () => {
-    await utils.initializeWithContext('remove');
+    await utils.initializeWithContext(FrameContexts.remove);
 
     let handlerCalled = false;
     pages.config.registerOnRemoveHandler(removeEvent => {
@@ -234,14 +252,15 @@ describe('config', () => {
     utils.sendMessage('settings.remove');
 
     expect(handlerCalled).toBe(true);
-    let message = utils.findMessageByFunc('settings.remove.failure');
+    const message = utils.findMessageByFunc('settings.remove.failure');
     expect(message).not.toBeNull();
     expect(message.args.length).toBe(1);
     expect(message.args[0]).toBe('someReason');
   });
 
   it('should not allow multiple notifies from the registered save handler', async () => {
-    await utils.initializeWithContext('settings');
+    expect.assertions(5);
+    await utils.initializeWithContext(FrameContexts.settings);
 
     let handlerCalled = false;
     pages.config.registerOnSaveHandler(saveEvent => {
@@ -254,7 +273,7 @@ describe('config', () => {
     utils.sendMessage('settings.save');
 
     expect(handlerCalled).toBe(true);
-    let message = utils.findMessageByFunc('settings.save.success');
+    const message = utils.findMessageByFunc('settings.save.success');
     expect(message).not.toBeNull();
     expect(message.args.length).toBe(0);
   });
