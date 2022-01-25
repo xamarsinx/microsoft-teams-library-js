@@ -1,8 +1,8 @@
-import { DialogInfo } from '../../src/public/interfaces';
-import { DialogDimension } from '../../src/public/constants';
-import { dialog } from '../../src/public/dialog';
-import { Utils } from '../utils';
 import { app } from '../../src/public/app';
+import { DialogDimension, FrameContexts } from '../../src/public/constants';
+import { dialog } from '../../src/public/dialog';
+import { DialogInfo } from '../../src/public/interfaces';
+import { Utils } from '../utils';
 
 describe('Dialog', () => {
   // Use to send a mock message from the app.
@@ -29,44 +29,31 @@ describe('Dialog', () => {
       expect(() => dialog.open(dialogInfo)).toThrowError('The library has not yet been initialized');
     });
 
-    it('should not allow calls from settings context', async () => {
-      await utils.initializeWithContext('settings');
+    const allowedContexts = [FrameContexts.content, FrameContexts.sidePanel, FrameContexts.meetingStage];
 
-      const dialogInfo: DialogInfo = {};
-      expect(() => dialog.open(dialogInfo)).toThrowError(
-        'This call is only allowed in following contexts: ["content","sidePanel","meetingStage"]. Current context: "settings".',
-      );
-    });
+    Object.keys(FrameContexts).forEach(k => {
+      const context = FrameContexts[k];
+      if (allowedContexts.some(allowedContext => allowedContext === context)) {
+        it(`should allow calls from ${context} context`, async () => {
+          await utils.initializeWithContext(context);
 
-    it('should not allow calls from authentication context', async () => {
-      await utils.initializeWithContext('authentication');
+          const dialogInfo: DialogInfo = {};
+          expect(() => dialog.open(dialogInfo)).not.toThrowError();
+        });
+      } else {
+        it(`should not allow calls from ${context} context`, async () => {
+          await utils.initializeWithContext(context);
 
-      const dialogInfo: DialogInfo = {};
-      expect(() => dialog.open(dialogInfo)).toThrowError(
-        'This call is only allowed in following contexts: ["content","sidePanel","meetingStage"]. Current context: "authentication".',
-      );
-    });
-
-    it('should not allow calls from remove context', async () => {
-      await utils.initializeWithContext('remove');
-
-      const dialogInfo: DialogInfo = {};
-      expect(() => dialog.open(dialogInfo)).toThrowError(
-        'This call is only allowed in following contexts: ["content","sidePanel","meetingStage"]. Current context: "remove".',
-      );
-    });
-
-    it('should not allow calls from task context', async () => {
-      await utils.initializeWithContext('task');
-
-      const dialogInfo: DialogInfo = {};
-      expect(() => dialog.open(dialogInfo)).toThrowError(
-        'This call is only allowed in following contexts: ["content","sidePanel","meetingStage"]. Current context: "task".',
-      );
+          const dialogInfo: DialogInfo = {};
+          expect(() => dialog.open(dialogInfo)).toThrowError(
+            `This call is only allowed in following contexts: ["content","sidePanel","meetingStage"]. Current context: "${context}".`,
+          );
+        });
+      }
     });
 
     it('should pass along entire DialogInfo parameter in sidePanel context', async () => {
-      await utils.initializeWithContext('sidePanel');
+      await utils.initializeWithContext(FrameContexts.sidePanel);
 
       const dialogInfo: DialogInfo = {
         card: 'someCard',
@@ -87,8 +74,8 @@ describe('Dialog', () => {
       expect(openMessage.args).toEqual([dialogInfo]);
     });
 
-    it('should pass along entire DialogInfo parameter in content', async () => {
-      await utils.initializeWithContext('content');
+    it('should pass along entire DialogInfo parameter in content context', async () => {
+      await utils.initializeWithContext(FrameContexts.content);
 
       const dialogInfo: DialogInfo = {
         card: 'someCard',
@@ -110,7 +97,8 @@ describe('Dialog', () => {
     });
 
     it('should invoke callback with result', async () => {
-      await utils.initializeWithContext('content');
+      expect.assertions(4);
+      await utils.initializeWithContext(FrameContexts.content);
 
       let callbackCalled = false;
       const dialogInfo: DialogInfo = {};
@@ -127,7 +115,8 @@ describe('Dialog', () => {
     });
 
     it('should invoke callback with error', async () => {
-      await utils.initializeWithContext('content');
+      expect.assertions(4);
+      await utils.initializeWithContext(FrameContexts.content);
 
       let callbackCalled = false;
       const dialogInfo: DialogInfo = {};
@@ -150,35 +139,31 @@ describe('Dialog', () => {
       expect(() => dialog.resize({} as any)).toThrowError('The library has not yet been initialized');
     });
 
-    it('should not allow calls from sidePanel context', async () => {
-      await utils.initializeWithContext('sidePanel');
+    const allowedContexts = [FrameContexts.task];
 
-      const dialogInfo: DialogInfo = {};
-      expect(() => dialog.resize(dialogInfo)).toThrowError(
-        'This call is only allowed in following contexts: ["task"]. Current context: "sidePanel".',
-      );
-    });
+    Object.keys(FrameContexts).forEach(k => {
+      const context = FrameContexts[k];
+      if (allowedContexts.some(allowedContext => allowedContext === context)) {
+        it(`should allow calls from ${context} context`, async () => {
+          await utils.initializeWithContext(context);
 
-    it('should not allow calls from content context', async () => {
-      await utils.initializeWithContext('content');
+          const dialogInfo: DialogInfo = {};
+          expect(() => dialog.resize(dialogInfo)).not.toThrowError();
+        });
+      } else {
+        it(`should not allow calls from ${context} context`, async () => {
+          await utils.initializeWithContext(context);
 
-      const dialogInfo: DialogInfo = {};
-      expect(() => dialog.resize(dialogInfo)).toThrowError(
-        'This call is only allowed in following contexts: ["task"]. Current context: "content".',
-      );
-    });
-
-    it('should not allow calls from meetingStage context', async () => {
-      await utils.initializeWithContext('meetingStage');
-
-      const dialogInfo: DialogInfo = {};
-      expect(() => dialog.resize(dialogInfo)).toThrowError(
-        'This call is only allowed in following contexts: ["task"]. Current context: "meetingStage".',
-      );
+          const dialogInfo: DialogInfo = {};
+          expect(() => dialog.resize(dialogInfo)).toThrowError(
+            `This call is only allowed in following contexts: ["task"]. Current context: "${context}".`,
+          );
+        });
+      }
     });
 
     it('should successfully pass DialogInfo in Task context', async () => {
-      await utils.initializeWithContext('task');
+      await utils.initializeWithContext(FrameContexts.task);
       const dialogInfo = { width: 10, height: 10 };
 
       dialog.resize(dialogInfo);
@@ -189,7 +174,7 @@ describe('Dialog', () => {
     });
 
     it('should throw an error if extra properties are provided', async () => {
-      await utils.initializeWithContext('task');
+      await utils.initializeWithContext(FrameContexts.task);
       const dialogInfo = { width: 10, height: 10, title: 'anything' };
 
       expect(() => dialog.resize(dialogInfo)).toThrowError(
@@ -203,56 +188,30 @@ describe('Dialog', () => {
       expect(() => dialog.submit()).toThrowError('The library has not yet been initialized');
     });
 
-    it('should not allow calls from settings context', async () => {
-      await utils.initializeWithContext('settings');
+    const allowedContexts = [FrameContexts.task];
 
-      expect(() => dialog.submit()).toThrowError(
-        'This call is only allowed in following contexts: ["task"]. Current context: "settings".',
-      );
-    });
+    Object.keys(FrameContexts).forEach(k => {
+      const context = FrameContexts[k];
 
-    it('should not allow calls from authentication context', async () => {
-      await utils.initializeWithContext('authentication');
+      if (allowedContexts.some(allowedContext => allowedContext === context)) {
+        it(`should allow calls from ${context} context`, async () => {
+          await utils.initializeWithContext(context);
 
-      expect(() => dialog.submit()).toThrowError(
-        'This call is only allowed in following contexts: ["task"]. Current context: "authentication".',
-      );
-    });
+          expect(() => dialog.submit()).not.toThrowError();
+        });
+      } else {
+        it(`should not allow calls from ${context} context`, async () => {
+          await utils.initializeWithContext(context);
 
-    it('should not allow calls from remove context', async () => {
-      await utils.initializeWithContext('remove');
-
-      expect(() => dialog.submit()).toThrowError(
-        'This call is only allowed in following contexts: ["task"]. Current context: "remove".',
-      );
-    });
-
-    it('should not allow calls from content context', async () => {
-      await utils.initializeWithContext('content');
-
-      expect(() => dialog.submit()).toThrowError(
-        'This call is only allowed in following contexts: ["task"]. Current context: "content".',
-      );
-    });
-
-    it('should not allow calls from meetingStage context', async () => {
-      await utils.initializeWithContext('meetingStage');
-
-      expect(() => dialog.submit()).toThrowError(
-        'This call is only allowed in following contexts: ["task"]. Current context: "meetingStage".',
-      );
-    });
-
-    it('should not allow calls from sidePanel context', async () => {
-      await utils.initializeWithContext('sidePanel');
-
-      expect(() => dialog.submit()).toThrowError(
-        'This call is only allowed in following contexts: ["task"]. Current context: "sidePanel".',
-      );
+          expect(() => dialog.submit()).toThrowError(
+            `This call is only allowed in following contexts: ["task"]. Current context: "${context}".`,
+          );
+        });
+      }
     });
 
     it('should successfully pass result and appIds parameters when called from Task context', async () => {
-      await utils.initializeWithContext('task');
+      await utils.initializeWithContext(FrameContexts.task);
 
       dialog.submit('someResult', ['someAppId', 'someOtherAppId']);
 
@@ -262,7 +221,7 @@ describe('Dialog', () => {
     });
 
     it('should handle a single string passed as appIds parameter', async () => {
-      await utils.initializeWithContext('task');
+      await utils.initializeWithContext(FrameContexts.task);
 
       dialog.submit('someResult', 'someAppId');
 
