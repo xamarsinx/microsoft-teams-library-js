@@ -32,15 +32,17 @@ describe('location', () => {
   });
 
   it('getLocation call in default version of platform support fails', async () => {
+    expect.assertions(4);
     await mobilePlatformMock.initializeWithContext(FrameContexts.task);
     mobilePlatformMock.setClientSupportedSDKVersion(originalDefaultPlatformVersion);
-    await expect(location.getLocation(defaultLocationProps)).rejects.toEqual({ errorCode: ErrorCode.OLD_PLATFORM });
+    return expect(location.getLocation(defaultLocationProps)).rejects.toEqual({ errorCode: ErrorCode.OLD_PLATFORM });
   });
 
   it('should not allow getLocation calls without props', async () => {
+    expect.assertions(1);
     await desktopPlatformMock.initializeWithContext(FrameContexts.content);
     desktopPlatformMock.setClientSupportedSDKVersion(minVersionForLocationAPIs);
-    await expect(location.getLocation(undefined)).rejects.toEqual({ errorCode: ErrorCode.INVALID_ARGUMENTS });
+    return expect(location.getLocation(undefined)).rejects.toEqual({ errorCode: ErrorCode.INVALID_ARGUMENTS });
   });
   it('should allow getLocation calls in desktop', async () => {
     await desktopPlatformMock.initializeWithContext(FrameContexts.content);
@@ -70,6 +72,7 @@ describe('location', () => {
     expect(message.args[0]).toEqual(defaultLocationProps);
   });
   it('getLocation calls with successful result', async () => {
+    expect.assertions(7);
     await mobilePlatformMock.initializeWithContext(FrameContexts.content);
     mobilePlatformMock.setClientSupportedSDKVersion(minVersionForLocationAPIs);
     const promise = location.getLocation(defaultLocationProps);
@@ -87,9 +90,10 @@ describe('location', () => {
       },
     } as DOMMessageEvent);
 
-    await expect(promise).resolves.toBe(defaultLocation);
+    return expect(promise).resolves.toBe(defaultLocation);
   });
   it('getLocation calls with error', async () => {
+    expect.assertions(7);
     await mobilePlatformMock.initializeWithContext(FrameContexts.content);
     mobilePlatformMock.setClientSupportedSDKVersion(minVersionForLocationAPIs);
     const promise = location.getLocation(defaultLocationProps);
@@ -107,19 +111,21 @@ describe('location', () => {
       },
     } as DOMMessageEvent);
 
-    await expect(promise).rejects.toEqual({ errorCode: ErrorCode.PERMISSION_DENIED });
+    return expect(promise).rejects.toEqual({ errorCode: ErrorCode.PERMISSION_DENIED });
   });
 
   it('showLocation call in default version of platform support fails', async () => {
+    expect.assertions(4);
     await mobilePlatformMock.initializeWithContext(FrameContexts.task);
     mobilePlatformMock.setClientSupportedSDKVersion(originalDefaultPlatformVersion);
-    await expect(location.showLocation(defaultLocation)).rejects.toEqual({ errorCode: ErrorCode.OLD_PLATFORM });
+    return expect(location.showLocation(defaultLocation)).rejects.toEqual({ errorCode: ErrorCode.OLD_PLATFORM });
   });
 
   it('should not allow showLocation calls without props', async () => {
+    expect.assertions(1);
     await desktopPlatformMock.initializeWithContext(FrameContexts.content);
     desktopPlatformMock.setClientSupportedSDKVersion(minVersionForLocationAPIs);
-    await expect(location.showLocation(null)).rejects.toEqual({ errorCode: ErrorCode.INVALID_ARGUMENTS });
+    return expect(location.showLocation(null)).rejects.toEqual({ errorCode: ErrorCode.INVALID_ARGUMENTS });
   });
   it('should allow showLocation calls in desktop', async () => {
     await desktopPlatformMock.initializeWithContext(FrameContexts.content);
@@ -149,6 +155,7 @@ describe('location', () => {
     expect(message.args[0]).toEqual(defaultLocation);
   });
   it('showLocation calls with successful result', async () => {
+    expect.assertions(7);
     await mobilePlatformMock.initializeWithContext(FrameContexts.content);
     mobilePlatformMock.setClientSupportedSDKVersion(minVersionForLocationAPIs);
     const promise = location.showLocation(defaultLocation);
@@ -166,9 +173,10 @@ describe('location', () => {
       },
     } as DOMMessageEvent);
 
-    return expect(promise).resolves;
+    return expect(promise).resolves.toEqual(true);
   });
   it('showLocation calls with error', async () => {
+    expect.assertions(7);
     await mobilePlatformMock.initializeWithContext(FrameContexts.content);
     mobilePlatformMock.setClientSupportedSDKVersion(minVersionForLocationAPIs);
     const promise = location.showLocation(defaultLocation);
@@ -186,6 +194,6 @@ describe('location', () => {
       },
     } as DOMMessageEvent);
 
-    await expect(promise).rejects.toEqual({ errorCode: ErrorCode.PERMISSION_DENIED });
+    return expect(promise).rejects.toEqual({ errorCode: ErrorCode.PERMISSION_DENIED });
   });
 });
