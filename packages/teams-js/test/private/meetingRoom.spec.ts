@@ -1,8 +1,8 @@
-import { Utils } from '../utils';
-import { FramelessPostMocks } from '../framelessPostMocks';
+import { DOMMessageEvent } from '../../src/internal/interfaces';
 import { meetingRoom } from '../../src/private/meetingRoom';
 import { app } from '../../src/public/app';
-import { DOMMessageEvent } from '../../src/internal/interfaces';
+import { FramelessPostMocks } from '../framelessPostMocks';
+import { Utils } from '../utils';
 
 describe('meetingRoom', () => {
   const mobilePlatformMock = new FramelessPostMocks();
@@ -47,8 +47,8 @@ describe('meetingRoom', () => {
 
   describe('getPairedMeetingRoomInfo', () => {
     it('should not allow calls before initialization', () => {
-      return expect(meetingRoom.getPairedMeetingRoomInfo()).rejects.toThrowError(
-        'The library has not yet been initialized',
+      return expect(meetingRoom.getPairedMeetingRoomInfo()).rejects.toMatchObject(
+        new Error('The library has not yet been initialized'),
       );
     });
 
@@ -109,22 +109,22 @@ describe('meetingRoom', () => {
 
   describe('sendCommandToPairedMeetingRoom', () => {
     it('should not allow calls before initialization', () => {
-      return expect(meetingRoom.sendCommandToPairedMeetingRoom('mute')).rejects.toThrowError(
-        'The library has not yet been initialized',
+      return expect(meetingRoom.sendCommandToPairedMeetingRoom('mute')).rejects.toMatchObject(
+        new Error('The library has not yet been initialized'),
       );
     });
 
     it('should not allow calls with null command name', async () => {
       await mobilePlatformMock.initializeWithContext('content');
-      return expect(meetingRoom.sendCommandToPairedMeetingRoom(null)).rejects.toThrowError(
-        '[meetingRoom.sendCommandToPairedMeetingRoom] Command name cannot be null or empty',
+      return expect(meetingRoom.sendCommandToPairedMeetingRoom(null)).rejects.toMatchObject(
+        new Error('[meetingRoom.sendCommandToPairedMeetingRoom] Command name cannot be null or empty'),
       );
     });
 
     it('should not allow calls with empty command name', async () => {
       await mobilePlatformMock.initializeWithContext('content');
-      return expect(meetingRoom.sendCommandToPairedMeetingRoom('')).rejects.toThrowError(
-        '[meetingRoom.sendCommandToPairedMeetingRoom] Command name cannot be null or empty',
+      return expect(meetingRoom.sendCommandToPairedMeetingRoom('')).rejects.toMatchObject(
+        new Error('[meetingRoom.sendCommandToPairedMeetingRoom] Command name cannot be null or empty'),
       );
     });
 
