@@ -1,6 +1,6 @@
+import { legacy, TeamInstanceParameters } from '../../src/private';
 import { app } from '../../src/public';
 import { Utils } from '../utils';
-import { legacy, TeamInstanceParameters } from '../../src/private';
 
 describe('AppSDK-privateAPIs', () => {
   // Use to send a mock message from the app.
@@ -28,8 +28,8 @@ describe('AppSDK-privateAPIs', () => {
   });
   describe('getUserJoinedTeams', () => {
     it('should not allow calls before initialization', () => {
-      return expect(legacy.fullTrust.getUserJoinedTeams()).rejects.toThrowError(
-        'The library has not yet been initialized',
+      return expect(legacy.fullTrust.getUserJoinedTeams()).rejects.toMatchObject(
+        new Error('The library has not yet been initialized'),
       );
     });
 
@@ -41,7 +41,7 @@ describe('AppSDK-privateAPIs', () => {
       const getUserJoinedTeamsMessage = utils.findMessageByFunc('getUserJoinedTeams');
       expect(getUserJoinedTeamsMessage).not.toBeNull();
       utils.respondToMessage(getUserJoinedTeamsMessage, {});
-      return expect(promise).resolves;
+      return expect(promise).resolves.toEqual({});
     });
 
     it('should allow a valid optional parameter set to false', async () => {
@@ -52,7 +52,7 @@ describe('AppSDK-privateAPIs', () => {
       const getUserJoinedTeamsMessage = utils.findMessageByFunc('getUserJoinedTeams');
       expect(getUserJoinedTeamsMessage).not.toBeNull();
       utils.respondToMessage(getUserJoinedTeamsMessage, {});
-      return expect(promise).resolves;
+      return expect(promise).resolves.toEqual({});
     });
 
     it('should allow a missing optional parameter', async () => {
@@ -63,7 +63,7 @@ describe('AppSDK-privateAPIs', () => {
       const getUserJoinedTeamsMessage = utils.findMessageByFunc('getUserJoinedTeams');
       expect(getUserJoinedTeamsMessage).not.toBeNull();
       utils.respondToMessage(getUserJoinedTeamsMessage, {});
-      return expect(promise).resolves;
+      return expect(promise).resolves.toEqual({});
     });
 
     it('should allow a missing and valid optional parameter', async () => {
@@ -74,14 +74,14 @@ describe('AppSDK-privateAPIs', () => {
       const getUserJoinedTeamsMessage = utils.findMessageByFunc('getUserJoinedTeams');
       expect(getUserJoinedTeamsMessage).not.toBeNull();
       utils.respondToMessage(getUserJoinedTeamsMessage, {});
-      return expect(promise).resolves;
+      return expect(promise).resolves.toEqual({});
     });
   });
 
   describe('getConfigSetting', () => {
     it('should not allow calls before initialization', () => {
-      return expect(legacy.fullTrust.getConfigSetting('key')).rejects.toThrowError(
-        'The library has not yet been initialized',
+      return expect(legacy.fullTrust.getConfigSetting('key')).rejects.toMatchObject(
+        new Error('The library has not yet been initialized'),
       );
     });
 
@@ -93,7 +93,7 @@ describe('AppSDK-privateAPIs', () => {
       const getConfigSettingMessage = utils.findMessageByFunc('getConfigSetting');
       expect(getConfigSettingMessage).not.toBeNull();
       utils.respondToMessage(getConfigSettingMessage, {});
-      return expect(promise).resolves;
+      return expect(promise).resolves.toEqual({});
     });
 
     it('should allow an empty key', async () => {
@@ -104,7 +104,7 @@ describe('AppSDK-privateAPIs', () => {
       const getConfigSettingMessage = utils.findMessageByFunc('getConfigSetting');
       expect(getConfigSettingMessage).not.toBeNull();
       utils.respondToMessage(getConfigSettingMessage, {});
-      expect(promise).resolves;
+      return expect(promise).resolves.toEqual({});
     });
 
     it('should allow a null key', async () => {
@@ -115,7 +115,7 @@ describe('AppSDK-privateAPIs', () => {
       const getConfigSettingMessage = utils.findMessageByFunc('getConfigSetting');
       expect(getConfigSettingMessage).not.toBeNull();
       utils.respondToMessage(getConfigSettingMessage, {});
-      expect(promise).resolves;
+      return expect(promise).resolves.toEqual({});
     });
 
     it('should allow an undefined key', async () => {
@@ -126,7 +126,7 @@ describe('AppSDK-privateAPIs', () => {
       const getConfigSettingMessage = utils.findMessageByFunc('getConfigSetting');
       expect(getConfigSettingMessage).not.toBeNull();
       utils.respondToMessage(getConfigSettingMessage, {});
-      expect(promise).resolves;
+      return expect(promise).resolves.toEqual({});
     });
   });
 });
