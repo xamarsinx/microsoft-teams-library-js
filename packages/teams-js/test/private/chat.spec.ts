@@ -1,7 +1,7 @@
-import { OpenConversationRequest } from '../../src/public/interfaces';
 import { chat } from '../../src/private/chat';
-import { Utils } from '../utils';
 import { app } from '../../src/public/app';
+import { OpenConversationRequest } from '../../src/public/interfaces';
+import { Utils } from '../utils';
 
 describe('chat', () => {
   // Use to send a mock message from the app.
@@ -28,8 +28,8 @@ describe('chat', () => {
         title: 'someTitle',
         entityId: 'someEntityId',
       };
-      return expect(chat.openConversation(conversationRequest)).rejects.toThrowError(
-        'The library has not yet been initialized',
+      return expect(chat.openConversation(conversationRequest)).rejects.toMatchObject(
+        new Error('The library has not yet been initialized'),
       );
     });
 
@@ -41,8 +41,8 @@ describe('chat', () => {
         title: 'someTitle',
         entityId: 'someEntityId',
       };
-      return expect(chat.openConversation(conversationRequest)).rejects.toThrowError(
-        'This call is only allowed in following contexts: ["content"]. Current context: "settings".',
+      return expect(chat.openConversation(conversationRequest)).rejects.toMatchObject(
+        new Error('This call is only allowed in following contexts: ["content"]. Current context: "settings".'),
       );
     });
 
@@ -108,7 +108,7 @@ describe('chat', () => {
 
   describe('getChatMembers', () => {
     it('should not allow calls before initialization', () => {
-      return expect(chat.getChatMembers()).rejects.toThrowError('The library has not yet been initialized');
+      return expect(chat.getChatMembers()).rejects.toMatchObject(new Error('The library has not yet been initialized'));
     });
 
     it('should successfully get chat members', async () => {
@@ -119,7 +119,7 @@ describe('chat', () => {
       const getChatMembersMessage = utils.findMessageByFunc('getChatMembers');
       expect(getChatMembersMessage).not.toBeNull();
       utils.respondToMessage(getChatMembersMessage, {});
-      return expect(promise).resolves;
+      return expect(promise).resolves.toEqual({});
     });
   });
 });
