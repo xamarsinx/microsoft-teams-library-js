@@ -1,7 +1,38 @@
 import { app, authentication, initialize } from '@microsoft/teams-js';
+import { HostClientType, IdentityProvider, M365ClientApplication } from 'msal-m365/dist';
 import React, { ReactElement } from 'react';
 
+import AuthInstanceContext from './AuthInstanceContext';
 import { ApiWithoutInput, ApiWithTextInput } from './utils';
+
+const initAuthInstance = (): Promise<M365ClientApplication> => {
+  return new Promise(resolve => {
+    app.getContext().then(context => {
+      resolve(
+        new M365ClientApplication(
+          {
+            identityInfo: {
+              providerName: IdentityProvider.msIdentity,
+              clientId: '34d8e67c-2758-40b5-836f-eb7defa875d3', // Have to provide client ID
+              redirectUri: context.page.sourceOrigin as string,
+              authority: `https://login.microsoftonline.com/${
+                context.user?.tenant?.id ? context.user?.tenant?.id : 'common'
+              }`,
+            },
+            userInfo: {
+              loginHint: context.user?.loginHint as string,
+              tenantId: context.user?.tenant?.id,
+            },
+            hostInfo: {
+              clientType: context.app.host.clientType as HostClientType,
+            },
+          },
+          authentication,
+        ),
+      );
+    });
+  });
+};
 
 const Initialize = (): React.ReactElement =>
   ApiWithoutInput({
@@ -22,8 +53,10 @@ const Initialize = (): React.ReactElement =>
     },
   });
 
-const GetAuthToken = (): React.ReactElement =>
-  ApiWithTextInput<authentication.AuthTokenRequestParameters>({
+const GetAuthToken = (): React.ReactElement => {
+  const authInstance = React.useContext(AuthInstanceContext);
+
+  return ApiWithTextInput<authentication.AuthTokenRequestParameters>({
     name: 'getAuthToken',
     title: 'Get Auth Token',
     onClick: {
@@ -44,11 +77,15 @@ const GetAuthToken = (): React.ReactElement =>
             failureCallback: callback,
             ...authParams,
           };
-          authentication.getAuthToken(authRequest);
+          authInstance
+            ?.acquireTokenSilent({ scopes: authRequest.resources as string[] })
+            .then(r => callback(r.accessToken))
+            .catch(r => callback(r));
         },
       },
     },
   });
+};
 
 const GetUser = (): React.ReactElement =>
   ApiWithoutInput({
@@ -128,16 +165,26 @@ const Authenticate = (): React.ReactElement =>
     },
   });
 
-const AuthenticationAPIs = (): ReactElement => (
-  <>
-    <h1>authentication</h1>
-    <Initialize />
-    <GetAuthToken />
-    <GetUser />
-    <NotifyFailure />
-    <NotifySuccess />
-    <Authenticate />
-  </>
-);
+const AuthenticationAPIs = (): ReactElement => {
+  const [authInstance, setAuthInstance] = React.useState<M365ClientApplication | null>(null);
+
+  React.useEffect(() => {
+    initAuthInstance().then(i => setAuthInstance(i));
+  }, []);
+
+  return (
+    <>
+      <AuthInstanceContext.Provider value={authInstance}>
+        <h1>authentication</h1>
+        <Initialize />
+        <GetAuthToken />
+        <GetUser />
+        <NotifyFailure />
+        <NotifySuccess />
+        <Authenticate />
+      </AuthInstanceContext.Provider>
+    </>
+  );
+};
 
 export default AuthenticationAPIs;
